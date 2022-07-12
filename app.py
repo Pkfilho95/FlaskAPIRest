@@ -1,4 +1,3 @@
-import sqlite3
 from flask import (
     abort,
     Flask,
@@ -10,6 +9,7 @@ from flask import (
     session,
     url_for
 )
+from functions import *
 
 app = Flask(__name__)
 app.secret_key = 'my_secretkey_for_test'
@@ -23,14 +23,6 @@ class User:
     
     def __str__(self):
         return self.username
-
-def db_connection():
-    #function to open a database connection
-
-    conn = sqlite3.connect('backend_test.db')
-    cursor = conn.cursor()
-
-    return cursor
 
 @app.before_request
 def before_request():
@@ -102,9 +94,20 @@ def get_patients():
     if not g.user:
         abort(403)
 
+    filter = request.args.get('filter', default = '*', type = str).upper()
+
     conn = db_connection()
     patients = conn.execute('SELECT * FROM patients').fetchall()
     conn.close()
+
+    for p in range(len(patients)):
+        patients[p] = list(patients[p])
+        patients[p][3] = patients[p][3].replace(' 00:00:00.000000','')
+
+    patients = function_filter(patients,filter)
+
+    if patients == []:
+        return jsonify({'message': 'No results for filter = %s' %filter})
 
     return jsonify(patients)
 
@@ -115,9 +118,16 @@ def get_pharmacies():
     if not g.user:
         abort(403)
 
+    filter = request.args.get('filter', default = '*', type = str).upper()
+
     conn = db_connection()
     pharmacies = conn.execute('SELECT * FROM pharmacies').fetchall()
     conn.close()
+
+    pharmacies = function_filter(pharmacies,filter)
+
+    if pharmacies == []:
+        return jsonify({'message': 'No results for filter = %s' %filter})
     
     return jsonify(pharmacies)
 
@@ -127,6 +137,8 @@ def get_transactions():
 
     if not g.user:
         abort(403)
+
+    filter = request.args.get('filter', default = '*', type = str).upper()
 
     sql = '''
     SELECT p.*,ph.*,t.uuid,t.amount,t.timestamp
@@ -140,6 +152,16 @@ def get_transactions():
     conn = db_connection()
     transactions = conn.execute(sql).fetchall()
     conn.close()
+
+    for t in range(len(transactions)):
+        transactions[t] = list(transactions[t])
+        transactions[t][3] = transactions[t][3].replace(' 00:00:00.000000','')
+        transactions[t][-1] = transactions[t][-1].replace('.000000','')
+
+    transactions = function_filter(transactions,filter)
+
+    if transactions == []:
+        return jsonify({'message': 'No results for filter = %s' %filter})
     
     return jsonify(transactions)
 
