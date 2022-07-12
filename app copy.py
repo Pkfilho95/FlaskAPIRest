@@ -1,55 +1,99 @@
-from flask import Flask, jsonify, make_response, request
+from flask import (
+    abort,
+    Flask,
+    g,
+    jsonify,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for
+)
 from functions import *
-from functools import wraps
-import datetime
-import jwt
 
 app = Flask(__name__)
-app.secret_key = 'mysecretkey'
+app.secret_key = 'my_secretkey_for_test'
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
+class User:
+    #class for user session
 
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
-
-        if not token:
-            return jsonify({'message': 'Token is missing !'}), 401
-
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], 'HS256')
-        except:
-            return jsonify({'message': 'Token is invalid !'}), 401
-
-        return f(*args, **kwargs)
+    def __init__(self, id, username):
+        self.id = id
+        self.username = username
     
-    return decorated
+    def __str__(self):
+        return self.username
 
-@app.route('/')
+@app.before_request
+def before_request():
+    #function to check the user session if exists
+
+    if 'user_id' in session:
+        user = session['user_id']
+        g.user = user
+    else:
+        g.user = None
+
+@app.route('/', methods=['GET','POST'])
 def login():
-    #auth user with JWT
+    #function log in with methods GET and POST
 
-    auth = request.authorization
+    if request.method == 'GET':
+        if g.user:
+            return redirect(url_for('index'))
 
-    if not auth or not auth.username or not auth.password:
-        return make_response('Could verify !', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+        return render_template('login.html')
     
-    conn = db_connection()
-    user = conn.execute('SELECT * FROM users WHERE username="%s" and password="%s"' %(auth.username, auth.password)).fetchall()
-    conn.close()
-    
-    if user != []:
-        token = jwt.encode({'user': auth.username, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
-        return jsonify({'token': token})
+    elif request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
 
-    return make_response('Could verify !', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+        sql = '''
+        SELECT * FROM users
+        WHERE username='%s'
+        AND password='%s'
+        ''' %(username,password)
+        
+        conn = db_connection()
+        auth = conn.execute(sql).fetchall()
+        conn.close()
+
+        if auth == []:
+            message = 'Invalid username or password !'
+            return render_template('login.html', message=message)
+
+        user = User(id=auth[0][0], username=auth[0][1])
+        session['user_id'] = user.id
+        
+        return redirect(url_for('index'))
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    #log out function
+
+    if not g.user:
+        abort(403)
+
+    session.pop('user_id', None)
+
+    return redirect(url_for('login'))
+
+@app.route('/index', methods=['GET'])
+def index():
+    #index page
+
+    if not g.user:
+        abort(403)
+    
+    return render_template('index.html')
 
 @app.route('/patients', methods=['GET'])
-@token_required
 def get_patients():
     #GET request for patient information
+
+    if not g.user:
+        abort(403)
 
     filter = request.args.get('filter', default = '*', type = str).upper()
 
@@ -69,9 +113,11 @@ def get_patients():
     return jsonify(patients)
 
 @app.route('/pharmacies', methods=['GET'])
-@token_required
 def get_pharmacies():
     #GET request for pharmacy information
+
+    if not g.user:
+        abort(403)
 
     filter = request.args.get('filter', default = '*', type = str).upper()
 
@@ -87,9 +133,11 @@ def get_pharmacies():
     return jsonify(pharmacies)
 
 @app.route('/transactions', methods=['GET'])
-@token_required
 def get_transactions():
     #GET request for transaction information
+
+    if not g.user:
+        abort(403)
 
     filter = request.args.get('filter', default = '*', type = str).upper()
 
