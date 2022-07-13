@@ -52,3 +52,14 @@ Password
 ```bash
 financeiro01
 ```
+
+## Filter
+
+In requests, you can put some text and if it is in any field, it will return only the lines that contain the text (it doesn't have to be the exact text).
+
+Example:
+```bash
+/patients?filter=joan
+```
+
+The response will return the lines with JOANA.
