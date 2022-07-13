@@ -1,8 +1,8 @@
 # FlaskAPIRest
 
-Rest API developed in Flask (Python) with user authentication.
+Rest API developed in Flask (Python) with JSON Web Token authentication.
 
-Endpoints can only be accessed after login. Otherwise, error 403 will appear.
+Endpoints can only be accessed after login. Otherwise, error will appear.
 
 When accessing an endpoint, the user will see the requested information in JSON format.
 
@@ -26,17 +26,23 @@ set FLASK_ENV=development
 flask run
 ```
 
-## Run Server with BATCH file
+## Run Server with BATCH file (only for Windows)
 
 Open the project folder that contains the app.py file.
 
 Run the run_server.bat file
 
-## Usage
+## Test
 
-Now head over to http://127.0.0.1:5000, and you should see the login page.
+The file FlaskAPICollection.postman_collection.json contains the test automation.
 
-Enter with the credentials below.
+Import this file in Postman.
+
+You must send a login request first. The response will save the token in global variable.
+
+Then, you wll have the permission to access others requests.
+
+## Credentials
 
 Username
 ```bash
@@ -46,9 +52,3 @@ Password
 ```bash
 financeiro01
 ```
-
-You will be redirect to index page.
-
-Choose which endpoint you want to access. The options are patients, pharmacies and transactions.
-
-Each endpoint returns the information in JSON format.
