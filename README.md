@@ -32,6 +32,10 @@ Open the project folder that contains the app.py file.
 
 Run the run_server.bat file
 
+```bash
+run_server.bat
+```
+
 ## Test
 
 The file FlaskAPICollection.postman_collection.json contains the test automation.
