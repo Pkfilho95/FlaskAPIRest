@@ -38,9 +38,11 @@ The file FlaskAPICollection.postman_collection.json contains the test automation
 
 Import this file in Postman.
 
+Run the server.
+
 You must send a login request first. The response will save the token in global variable.
 
-Then, you wll have the permission to access others requests.
+Then, you will have the permission to access others requests.
 
 ## Credentials
 
