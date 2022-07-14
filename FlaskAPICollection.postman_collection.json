@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "81d6aa52-a169-46da-9830-9bc99da047c2",
 		"name": "FlaskAPICollection",
-		"description": "Welcome to Flask API test!\n\nYou must send a request to login first, because teh test script will save the JSON Web Token in the global variables.\n\nYou need the token to access the other requests.",
+		"description": "Welcome to Flask API test!\n\nYou must send a request to login first, because the test script will save the JSON Web Token in the global variables.\n\nYou need the token to access the other requests.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
